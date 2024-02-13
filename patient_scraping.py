@@ -31,6 +31,8 @@ def convert_dcm_png(path, desired_size: Tuple[int] = None):
     final_image = np.uint8(rescaled_image) # integers pixels
     final_image = Image.fromarray(final_image)
 
+    print(type(final_image))
+
     if desired_size != None:
         final_image = final_image.resize(desired_size)
 
@@ -45,7 +47,15 @@ def preprocess_patients(import_path: str, export_path: str, desired_size, rescal
         print("Patient: " + folder)
         if folder == '.DS_Store':
             continue
-        if folder in os.listdir(export_path):
+        if rescaled:
+            os.makedirs(export_resized_path + '/rescaled_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
+            if folder in os.listdir(export_resized_path + '/rescaled_'+ str(desired_size[0])+'x'+str(desired_size[0])):
+                continue
+        elif cropped:
+            os.makedirs(export_resized_path + '/cropped_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
+            if folder in os.listdir(export_resized_path + '/cropped_'+ str(desired_size[0])+'x'+str(desired_size[0])):
+                continue
+        elif folder in os.listdir(export_path):
             continue
 
         folder_internal = [f for f in os.listdir(import_path + "/" + folder) if f not in ['DICOMDIR', 'LOCKFILE', 'VERSION','.DS_Store']][0]
@@ -89,6 +99,7 @@ def preprocess_patients(import_path: str, export_path: str, desired_size, rescal
             
                 except Exception as e:
                     print("Error reading DICOM file:", str(e))
+
 
 
 def resize_images(path: str, dimension: Tuple[int], action: str):
