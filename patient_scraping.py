@@ -6,19 +6,18 @@ from typing import Tuple
 
 
 
-from remove_folders import remove_folders
+from remove_folders import remove_empty_folders
 
 
 # Paths
-data_path = os.getcwd() + "/data"
-export_data_path = os.getcwd() + "/data/png_export"
-export_resized_path = data_path + "/png_resized"
+data_path = os.path.join(os.getcwd(), "data")
+dicom_data_path = os.path.join(data_path, "dicom_data")
+png_export_data_path = os.path.join(data_path, "png_export")
+png_resized_data_path = os.path.join(data_path, "png_resized")
+
+
 #export_rescaled_path = export_resized_path + "/rescaled"
 #export_cropped_path = export_resized_path + "/cropped"
-infected_path = data_path + "/Pazienti_Settici"
-aseptic_path = data_path + "/Pazienti_Asettici"
-infected_export_path = export_data_path + "/Pazienti_Settici"
-aseptic_export_path = export_data_path + "/Pazienti_Asettici"
 
 
 def convert_dcm_png(path, desired_size: Tuple[int] = None):
@@ -31,18 +30,51 @@ def convert_dcm_png(path, desired_size: Tuple[int] = None):
     final_image = np.uint8(rescaled_image) # integers pixels
     final_image = Image.fromarray(final_image)
 
-    print(type(final_image))
-
-    #final_image.crop()
-
-    if desired_size != None:
-        final_image = final_image.resize(desired_size)
-
     return final_image
 
 
 
-def preprocess_patients(import_path: str, export_path: str, desired_size, rescaled: bool = False, cropped: bool = False):
+def preprocess_patients_png(import_path: str, export_path: str):
+    """Convert all dicom images into png by recreating the input folder structure."""
+
+    os.makedirs(export_path, exist_ok=True)
+
+    import_dir = import_path.split("/")[-1]
+    print(f"IMPORT: {import_dir}")
+    export_dir = export_path.split("/")[-1]
+    print(f"EXPORT: {export_dir}")
+
+
+    # Cycle through all subfolder and recreate them into export_path
+    for root, dirs, files in os.walk(import_path, topdown=False):
+        for name in dirs:
+            os.makedirs(os.path.join(root, name).replace(import_dir, export_dir), exist_ok=True)
+
+    # Cycle through all files and convert them to png and save to output directory
+    for root, dirs, files in os.walk(import_path, topdown=False):
+        for name in files:            
+            file_path = os.path.join(root, name)
+            #print(file_path)
+            try:
+                dicom_data = pydicom.dcmread(file_path)
+                if 'PixelData' in dicom_data: # Check if the DICOM data contains pixel data
+                    pixel_array = dicom_data.pixel_array
+                    height, width = pixel_array.shape
+                    
+                    if (height, width) == (512,512): # Filter only axial tomographies
+                        image_converted = convert_dcm_png(file_path)
+                        output_file_path = file_path.replace(import_dir, export_dir).split(".")[0] + ".png"
+                        image_converted.save(output_file_path)
+
+                else:
+                    print("No image data in DICOM file")
+        
+            except Exception as e:
+                print(f"Error reading DICOM file: {e}")
+
+
+
+def preprocess_patients_old(import_path: str, export_path: str, desired_size, rescaled: bool = False, cropped: bool = False):
     os.makedirs(export_path, exist_ok=True)
     
     for folder in os.listdir(import_path):
@@ -112,23 +144,23 @@ def resize_images(path: str, dimension: Tuple[int], action: str):
     preprocess_patients(aseptic_export_path, export_resized_path)
 
 
+    #final_image.crop()
+
+    if desired_size != None:
+        final_image = final_image.resize(desired_size)
+
     print("aa")
 
 
 
 
 def main():
-    #preprocess_patients(aseptic_path, aseptic_export_path)
-    #preprocess_patients(aseptic_path, aseptic_export_path, desired_size = (224,224), rescaled = True)
-    #print("Aseptic end\n")
+    
+    preprocess_patients_png(dicom_data_path, png_export_data_path)
 
-    #preprocess_patients(infected_path, infected_export_path)
-    #preprocess_patients(infected_path, infected_export_path, desired_size = (224,224), rescaled = True)
+    #preprocess_patients_resize(png_export_data_path, png_resized_data_path)
 
-    #print("Infected end\n")
-
-
-    remove_folders(export_data_path)
+    #remove_empty_folders(png_export_data_path)
 
 
 if __name__ == "__main__":

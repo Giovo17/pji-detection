@@ -3,7 +3,7 @@ import os
 data_path = os.getcwd() + "/data/png_export/"
 
 
-def remove_folders(path):
+def remove_empty_folders(path):
     for root, dirs, files in os.walk(path, topdown=False):
         for name in dirs:
             if len(os.listdir(os.path.join(root, name))) == 0:
@@ -12,7 +12,7 @@ def remove_folders(path):
 
 
 def main():
-    remove_folders(data_path)
+    remove_empty_folders(data_path)
 
 
 if __name__ == "__main__":
