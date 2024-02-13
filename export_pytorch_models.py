@@ -13,13 +13,24 @@ models = {
 }
 
 
-def export_models(models: Dict[str, Dict[str, str]], output_path: str) -> None:
+def export_models(models: Dict[str, Dict[str, str]], output_dir: str) -> None:
     """Export pytorch hub models."""
 
     for key, model_info in models.items():
+        os.chdir(cache_path)
         model = torch.hub.load(model_info['repo'], model_info['model_name'], pretrained=True)
+        os.chdir("../")
 
-        torch.save(model.state_dict(), f'{output_path}/{model_info['repo'].replace("/", "-")}_{model_info['model_name']}.pt')
+        
+        # https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html
+
+        # https://it.mathworks.com/help/deeplearning/ref/importonnxnetwork.html
+        
+
+        #output_path = f'{output_dir}/{model_info['repo'].replace("/", "-")}_{model_info['model_name']}.pt'
+        #torch.save(model.state_dict(), output_path)
+
+    os.chdir("../")
 
 
 def main():
