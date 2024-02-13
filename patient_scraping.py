@@ -33,6 +33,8 @@ def convert_dcm_png(path, desired_size: Tuple[int] = None):
 
     print(type(final_image))
 
+    #final_image.crop()
+
     if desired_size != None:
         final_image = final_image.resize(desired_size)
 
@@ -84,14 +86,16 @@ def preprocess_patients(import_path: str, export_path: str, desired_size, rescal
                             image_converted.save(export_path + "/" + folder + "/" + int_f+ "/" + el +'.png')
                         
                         elif cropped:
-                            os.makedirs(export_resized_path + '/' + 'cropped' +'_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
-                            image_converted = convert_dcm_png(el_path, desired_size)
-                            image_converted.save(export_resized_path + '/' + 'cropped' +'_'+ str(desired_size[0])+'x'+str(desired_size[0]) + "/" + folder + "/" + int_f+ "/" + el +'.png')
-
+                            continue
+                            # (TO-DO) To implement
+                            #os.makedirs(export_resized_path + '/' + 'cropped' +'_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
+                            #image_converted = convert_dcm_png(el_path, desired_size)
+                            #image_converted.save(export_resized_path + '/' + 'cropped' +'_'+ str(desired_size[0])+'x'+str(desired_size[0]) + "/" + folder + "/" + int_f+ "/" + el +'.png')
+                            
                         elif rescaled:
-                            os.makedirs(export_resized_path + '/' + 'rescaled' +'_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
+                            os.makedirs(export_resized_path + '/rescaled_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
                             image_converted = convert_dcm_png(el_path, desired_size)
-                            image_converted.save(export_resized_path + '/' + 'rescaled' +'_'+ str(desired_size[0])+'x'+str(desired_size[0]) + "/" + folder + "/" + int_f+ "/" + el +'.png')
+                            image_converted.save(export_resized_path + '/rescaled_'+ str(desired_size[0])+'x'+str(desired_size[0]) + "/" + folder + "/" + int_f+ "/" + el +'.png')
 
 
                     else:
