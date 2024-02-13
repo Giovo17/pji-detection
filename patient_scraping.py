@@ -2,6 +2,9 @@ import os
 import numpy as np
 import pydicom
 from PIL import Image
+from typing import Tuple
+
+
 
 from remove_folders import remove_folders
 
@@ -9,13 +12,16 @@ from remove_folders import remove_folders
 # Paths
 data_path = os.getcwd() + "/data"
 export_data_path = os.getcwd() + "/data/png_export"
+export_resized_path = data_path + "/png_resized"
+#export_rescaled_path = export_resized_path + "/rescaled"
+#export_cropped_path = export_resized_path + "/cropped"
 infected_path = data_path + "/Pazienti_Settici"
 aseptic_path = data_path + "/Pazienti_Asettici"
 infected_export_path = export_data_path + "/Pazienti_Settici"
 aseptic_export_path = export_data_path + "/Pazienti_Asettici"
 
 
-def convert_dcm_png(path):
+def convert_dcm_png(path, desired_size:Tuple[int]=False):
     """Convert an ..."""
     
     im = pydicom.dcmread(path)
@@ -25,10 +31,14 @@ def convert_dcm_png(path):
     final_image = np.uint8(rescaled_image) # integers pixels
     final_image = Image.fromarray(final_image)
 
+    if desired_size:
+        final_image = final_image.resize(desired_size)
+
     return final_image
 
 
-def preprocess_patients(import_path: str, export_path: str):
+
+def preprocess_patients(import_path: str, export_path: str, desired_size,rescaled=False, cropped = False, action:str = False):
     os.makedirs(export_path, exist_ok=True)
     
     for folder in os.listdir(import_path):
@@ -59,16 +69,59 @@ def preprocess_patients(import_path: str, export_path: str):
                         # Get the dimensions of the pixel array (image)
                         height, width = pixel_array.shape
                         #print("Image Dimensions (Height x Width):", height, "x", width)
-                        if (height, width) == (512,512):
+                        if (height, width) == (512,512) and cropped == False and rescaled == False:
                             image_converted = convert_dcm_png(el_path)
                             image_converted.save(export_path + "/" + folder + "/" + int_f+ "/" + el +'.png')
+                        
+                        elif cropped:
+                            os.makedirs(export_resized_path + '/' + action +'_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
+                            image_converted = convert_dcm_png(el_path, desired_size)
+                            image_converted.save(export_resized_path + '/' + action +'_'+ str(desired_size[0])+'x'+str(desired_size[0]) + "/" + folder + "/" + int_f+ "/" + el +'.png')
+
+                        elif rescaled:
+                            os.makedirs(export_resized_path + '/' + action +'_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
+                            image_converted = convert_dcm_png(el_path, desired_size)
+                            image_converted.save(export_resized_path + '/' + action +'_'+ str(desired_size[0])+'x'+str(desired_size[0]) + "/" + folder + "/" + int_f+ "/" + el +'.png')
+
+
                     
                     else:
                         print("No image data in DICOM file")
             
                 except Exception as e:
                     print("Error reading DICOM file:", str(e))
-        
+
+
+def resize_images(path: str, dimension: Tuple[int], action: str):
+    os.makedirs(export_resized_path + '/' + action +'_'+ str(dimension[0])+'x'+str(dimension[0]), exist_ok=True)
+    preprocess_patients(aseptic_export_path, export_resized_path)
+
+
+    print("aa")
+
+
+
+"""
+def resize_images(func):
+    def wrapper():
+        print("aaa")
+        func()
+        print("bbb")
+    return wrapper
+
+@resize_images
+def rescale_images():
+    print("fff")
+
+@resize_images
+def crop_images():
+    print("ggg")
+
+rescale_images()
+crop_images()
+"""
+
+
 
 def main():
     preprocess_patients(aseptic_path, aseptic_export_path)
