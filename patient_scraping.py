@@ -34,6 +34,7 @@ def convert_dcm_png(path, desired_size: Tuple[int] = None):
 
 
 
+
 def preprocess_patients_png(import_path: str, export_path: str):
     """Convert all dicom images into png by recreating the input folder structure."""
 
@@ -71,6 +72,42 @@ def preprocess_patients_png(import_path: str, export_path: str):
         
             except Exception as e:
                 print(f"Error reading DICOM file: {e}")
+
+
+def resized_patient_png(import_path: str, export_path: str, desired_size:Tuple[int]):
+    """Convert all dicom images into png by recreating the input folder structure."""
+
+    os.makedirs(export_path, exist_ok=True)
+
+    import_dir = import_path.split("/")[-1]
+    print(f"IMPORT: {import_dir}")
+    export_dir = export_path.split("/")[-1]
+    print(f"EXPORT: {export_dir}")
+
+    # Cycle through all subfolder and recreate them into export_path
+    for root, dirs, files in os.walk(import_path, topdown=False):
+        for name in dirs:
+            os.makedirs(os.path.join(root, name).replace(import_dir, export_dir + '/' + export_dir + str(desired_size)[0]+'x'+str(desired_size)[0]), exist_ok=True)
+
+    # Cycle through all files and convert them to png and save to output directory
+    for root, dirs, files in os.walk(import_path, topdown=False):
+        for name in files:            
+            file_path = os.path.join(root, name)
+            image = Image.open(file_path)
+            resized_image = image.resize(desired_size)
+
+            output_file_path = file_path.replace(import_dir, export_dir + '/' + export_dir + str(desired_size)[0]+'x'+str(desired_size)[0]).split(".")[0] + ".png"
+            resized_image.save(output_file_path)
+
+
+
+
+
+
+
+
+
+
 
 
 
