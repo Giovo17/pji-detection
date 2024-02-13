@@ -88,12 +88,12 @@ def preprocess_patients(import_path: str, export_path: str, desired_size, rescal
                         elif cropped:
                             continue
                             # (TO-DO) To implement
-                            #os.makedirs(export_resized_path + '/' + 'cropped' +'_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
+                            #os.makedirs(export_resized_path + '/' + 'cropped' +'_'+ str(desired_size[0])+'x'+str(desired_size[0])+ "/" + folder + "/" + int_f, exist_ok=True)
                             #image_converted = convert_dcm_png(el_path, desired_size)
                             #image_converted.save(export_resized_path + '/' + 'cropped' +'_'+ str(desired_size[0])+'x'+str(desired_size[0]) + "/" + folder + "/" + int_f+ "/" + el +'.png')
                             
                         elif rescaled:
-                            os.makedirs(export_resized_path + '/rescaled_'+ str(desired_size[0])+'x'+str(desired_size[0]), exist_ok=True)
+                            os.makedirs(export_resized_path + '/rescaled_'+ str(desired_size[0])+'x'+str(desired_size[0])+ "/" + folder + "/" + int_f, exist_ok=True)
                             image_converted = convert_dcm_png(el_path, desired_size)
                             image_converted.save(export_resized_path + '/rescaled_'+ str(desired_size[0])+'x'+str(desired_size[0]) + "/" + folder + "/" + int_f+ "/" + el +'.png')
 
@@ -103,6 +103,7 @@ def preprocess_patients(import_path: str, export_path: str, desired_size, rescal
             
                 except Exception as e:
                     print("Error reading DICOM file:", str(e))
+                    raise e
 
 
 
@@ -118,13 +119,13 @@ def resize_images(path: str, dimension: Tuple[int], action: str):
 
 def main():
     #preprocess_patients(aseptic_path, aseptic_export_path)
-    preprocess_patients(aseptic_path, aseptic_export_path, desired_size = (224,224), rescaled = True)
-    print("Aseptic end\n")
+    #preprocess_patients(aseptic_path, aseptic_export_path, desired_size = (224,224), rescaled = True)
+    #print("Aseptic end\n")
 
     #preprocess_patients(infected_path, infected_export_path)
-    preprocess_patients(infected_path, infected_export_path, desired_size = (224,224), rescaled = True)
+    #preprocess_patients(infected_path, infected_export_path, desired_size = (224,224), rescaled = True)
 
-    print("Infected end\n")
+    #print("Infected end\n")
 
 
     remove_folders(export_data_path)
