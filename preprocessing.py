@@ -103,7 +103,7 @@ def resize_patient_png(import_path: str, export_path: str, desired_size: Tuple[i
             image = Image.open(file_path)
             resized_image = image.resize(desired_size)
 
-            output_file_path = file_path.replace(import_dir, export_dir) + ".png"
+            output_file_path = file_path.replace(import_dir, export_dir).split(".")[0] + ".png"
             resized_image.save(output_file_path)
 
 
