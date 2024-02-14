@@ -82,7 +82,7 @@ def resize_patient_png(import_path: str, export_path: str, desired_size: Tuple[i
     os.makedirs(export_path, exist_ok=True)
 
     # Create a subfolder devoted to resize technique and the desided size
-    export_path = os.path.join(export_path, technique + "_" + str(desired_size)[0]+'x'+str(desired_size)[0]) # Adjust the export path
+    export_path = os.path.join(export_path, technique + "_" + str(desired_size[0])+'x'+str(desired_size[1])) # Adjust the export path
     os.makedirs(export_path, exist_ok=True)
 
 
@@ -113,7 +113,7 @@ def resize_patient_png(import_path: str, export_path: str, desired_size: Tuple[i
 
 def main():
     
-    preprocess_patients_png(dicom_data_path, png_export_data_path)
+    #preprocess_patients_png(dicom_data_path, png_export_data_path)
 
     resize_patient_png(png_export_data_path, png_resized_data_path, (224,224))
 
