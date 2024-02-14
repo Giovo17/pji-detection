@@ -52,7 +52,9 @@ def preprocess_patients_png(import_path: str, export_path: str):
     for root, dirs, files in os.walk(import_path, topdown=False):
         for name in files:            
             file_path = os.path.join(root, name)
-            #print(file_path)
+            output_name = file_path.split("/")[-4] + "_" + name
+            output_file_path = os.path.join(root, output_name).replace(import_dir, export_dir).split(".")[0] + ".png"
+            #print(output_file_path)
             try:
                 dicom_data = pydicom.dcmread(file_path)
                 if 'PixelData' in dicom_data: # Check if the DICOM data contains pixel data
@@ -61,7 +63,6 @@ def preprocess_patients_png(import_path: str, export_path: str):
                     
                     if (height, width) == (512,512): # Filter only axial tomographies
                         image_converted = convert_dcm_png(file_path)
-                        output_file_path = file_path.replace(import_dir, export_dir).split(".")[0] + ".png"
                         image_converted.save(output_file_path)
 
                 else:
@@ -117,9 +118,9 @@ def resize_patient_png(import_path: str, export_path: str, desired_size: Tuple[i
 
 def main():
     
-    #preprocess_patients_png(dicom_data_path, png_export_data_path)
+    preprocess_patients_png(dicom_data_path, png_export_data_path)
 
-    resize_patient_png(png_export_data_path, png_resized_data_path, (224,224))
+    resize_patient_png(png_export_data_path, png_resized_data_path, (227,227))
 
 
 if __name__ == "__main__":
