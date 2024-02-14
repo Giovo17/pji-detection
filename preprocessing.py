@@ -6,7 +6,7 @@ from typing import Tuple
 
 
 
-from remove_folders import remove_empty_folders
+from utils.remove_folders import remove_empty_folders
 
 
 # Paths
