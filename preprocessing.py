@@ -2,9 +2,8 @@ import os
 import numpy as np
 import pydicom
 from PIL import Image
+from PIL import UnidentifiedImageError
 from typing import Tuple
-
-
 
 from utils.remove_folders import remove_empty_folders
 
@@ -100,7 +99,12 @@ def resize_patient_png(import_path: str, export_path: str, desired_size: Tuple[i
     for root, dirs, files in os.walk(import_path, topdown=False):
         for name in files:            
             file_path = os.path.join(root, name)
-            image = Image.open(file_path)
+            try:
+                image = Image.open(file_path)
+            except UnidentifiedImageError as e:
+                print(f"cannot identify image file {file_path}")
+                continue
+
             resized_image = image.resize(desired_size)
 
             output_file_path = file_path.replace(import_dir, export_dir).split(".")[0] + ".png"
