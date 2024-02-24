@@ -61,9 +61,9 @@ def preprocess_patients(import_path: str, export_path: str):
                         if hounsfield_hp_detection(image_matrix, float(dicom_data.RescaleSlope), float(dicom_data.RescaleIntercept), threshold=3000):
                             image_bone = bone_extraction(image_matrix, float(dicom_data.RescaleSlope), float(dicom_data.RescaleIntercept), threshold=1000)
                             
-                            image_equalized = image_equalization(image_bone)
+                            image_bone_equalized = image_equalization(image_bone)
                             
-                            convert_matrix2png(image_equalized, output_file_path)
+                            convert_matrix2png(image_bone_equalized, output_file_path)
 
 
                 else:
