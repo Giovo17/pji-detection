@@ -4,7 +4,7 @@ import pydicom
 from PIL import Image
 from PIL import UnidentifiedImageError
 from typing import Tuple
-
+from itertools import groupby
 
 # DEPRECATED
 def convert_dcm_png(path, desired_size: Tuple[int] = None):
@@ -46,11 +46,54 @@ def bone_extraction(image: np.ndarray, slope: float, intercept: float, threshold
     """Bone patch extraction."""
 
     # Bone coordinates detection
+    bone_dict= {}
     bone_coordinates = []
     for i in range(len(image)):
         for j in range(len(image[i])):
             if image[i,j] * slope + intercept > threshold:
+                if i not in bone_dict:
+                    bone_dict[i] = [(i,j)]
+                else:
+                    # Se i è già presente, aggiungi la tupla (i, j) alla lista corrispondente
+                    bone_dict[i].append((i,j))
                 bone_coordinates.append((i,j))
+
+    print(bone_dict)
+
+    list_temp_mean_i = []
+    for k,v in bone_dict.items():
+        somma = 0
+        for tup in v:
+            somma+=tup[1]
+        temp_mean = somma/len(v)
+        list_temp_mean_i.append(temp_mean)
+
+    mean_for_row = sum(list_temp_mean_i)/len(list_temp_mean_i)
+    print(mean_for_row)
+
+
+
+
+    '''
+    # Sort the list of tuples by the first element (i) (row)
+    sorted_tuples = sorted(bone_coordinates, key=lambda x: x[0])
+
+    # Group tuples based on the same value of i (row)
+    grouped_tuples = {}
+    for key, group in groupby(sorted_tuples, key=lambda x: x[0]):
+        grouped_tuples[key] = list(group) #ogni tuple può avre numeri di elemti variabile in base a quante pixel osso sono state detected in quella riga
+    
+    list_temp_mean = []
+    for k,v in grouped_tuples.items():
+        s=0
+        for tup in v: #per tuple in v (che rappresenta il vettore di tutte le tuple ordinate per stessa riga)
+            s+=tup[1]
+        temp_mean = s/len(v)
+        list_temp_mean.append(temp_mean)
+    mean_for_row=sum(list_temp_mean)/len(list_temp_mean)
+    print(mean_for_row)
+    '''
+            
     
     # (TO-DO) Considerare punti del contorno
 
