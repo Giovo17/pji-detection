@@ -6,6 +6,7 @@ from PIL import UnidentifiedImageError
 from typing import Tuple
 
 from utils.remove_folders import remove_empty_folders
+from single_image_preprocessing import convert_dcm2matrix, hounsfield_hp_detection, bone_extraction, image_equalization, convert_matrix2png
 
 
 # Paths
@@ -19,20 +20,9 @@ png_resized_data_path = os.path.join(data_path, "png_resized")
 #export_cropped_path = export_resized_path + "/cropped"
 
 
-def convert_dcm_png(path, desired_size: Tuple[int] = None):
-    """Convert a dicom image in png."""
-    
-    im = pydicom.dcmread(path)
-    im = im.pixel_array.astype(float)
-
-    rescaled_image = (np.maximum(im,0)/im.max())*255 # float pixels
-    final_image = np.uint8(rescaled_image) # integers pixels
-    final_image = Image.fromarray(final_image)
-
-    return final_image
 
 
-def preprocess_patients_png(import_path: str, export_path: str):
+def preprocess_patients(import_path: str, export_path: str):
     """Convert all dicom images into png by recreating the input folder structure."""
 
     os.makedirs(export_path, exist_ok=True)
@@ -57,13 +47,24 @@ def preprocess_patients_png(import_path: str, export_path: str):
             #print(output_file_path)
             try:
                 dicom_data = pydicom.dcmread(file_path)
-                if 'PixelData' in dicom_data: # Check if the DICOM data contains pixel data
+
+                # Check if the DICOM data contains desired metadata
+                if 'PixelData' in dicom_data and 'RescaleSlope' in dicom_data and 'RescaleIntercept' in dicom_data:
                     pixel_array = dicom_data.pixel_array
                     height, width = pixel_array.shape
                     
                     if (height, width) == (512,512): # Filter only axial tomographies
-                        image_converted = convert_dcm_png(file_path)
-                        image_converted.save(output_file_path)
+                        #image_converted = convert_dcm_png(file_path) # Deprecated
+                        #image_converted.save(output_file_path) # Deprecated
+                        image_matrix = convert_dcm2matrix(file_path)
+
+                        if hounsfield_hp_detection(image_matrix, int(dicom_data.RescaleSlope), int(dicom_data.RescaleIntercept), threshold=3000):
+                            image_bone = bone_extraction(image_matrix, int(dicom_data.RescaleSlope), int(dicom_data.RescaleIntercept), threshold=1000)
+                            
+                            image_equalized = image_equalization(image_bone)
+                            
+                            convert_matrix2png(image_equalized, output_file_path)
+
 
                 else:
                     print("No image data in DICOM file")
@@ -76,7 +77,7 @@ def preprocess_patients_png(import_path: str, export_path: str):
     remove_empty_folders(export_path)
 
 
-def resize_patient_png(import_path: str, export_path: str, desired_size: Tuple[int], technique: str = "rescale") -> None:
+def resize_patients(import_path: str, export_path: str, desired_size: Tuple[int], technique: str = "rescale") -> None:
     """Convert all dicom images into png by recreating the input folder structure."""
 
     os.makedirs(export_path, exist_ok=True)
@@ -118,10 +119,12 @@ def resize_patient_png(import_path: str, export_path: str, desired_size: Tuple[i
 
 def main():
     
-    preprocess_patients_png(dicom_data_path, png_export_data_path)
+    print("Init preprocessing")
 
-    resize_patient_png(png_export_data_path, png_resized_data_path, (227,227))
+    #preprocess_patients(dicom_data_path, png_export_data_path)
 
+    #resize_patients(png_export_data_path, png_resized_data_path, (227,227))
+    
 
 if __name__ == "__main__":
     main()
