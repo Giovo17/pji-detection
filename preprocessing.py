@@ -58,8 +58,8 @@ def preprocess_patients(import_path: str, export_path: str):
                         #image_converted.save(output_file_path) # Deprecated
                         image_matrix = convert_dcm2matrix(file_path)
 
-                        if hounsfield_hp_detection(image_matrix, int(dicom_data.RescaleSlope), int(dicom_data.RescaleIntercept), threshold=3000):
-                            image_bone = bone_extraction(image_matrix, int(dicom_data.RescaleSlope), int(dicom_data.RescaleIntercept), threshold=1000)
+                        if hounsfield_hp_detection(image_matrix, float(dicom_data.RescaleSlope), float(dicom_data.RescaleIntercept), threshold=3000):
+                            image_bone = bone_extraction(image_matrix, float(dicom_data.RescaleSlope), float(dicom_data.RescaleIntercept), threshold=1000)
                             
                             image_equalized = image_equalization(image_bone)
                             

@@ -34,7 +34,7 @@ def convert_dcm2matrix(file_path: str) -> np.ndarray:
 
 
 
-def hounsfield_hp_detection(image: np.ndarray, slope: int, intercept: int, threshold: int) -> bool:
+def hounsfield_hp_detection(image: np.ndarray, slope: float, intercept: float, threshold: int) -> bool:
     """Hounsfield based prothesis detection."""
 
     for i in range(len(image)):
@@ -46,7 +46,7 @@ def hounsfield_hp_detection(image: np.ndarray, slope: int, intercept: int, thres
     return False
 
 
-def bone_extraction(image: np.ndarray, slope: int, intercept: int, threshold: int, output_dim: Tuple[int]) -> np.ndarray:
+def bone_extraction(image: np.ndarray, slope: float, intercept: float, threshold: int, output_dim: Tuple[int]) -> np.ndarray:
     """Bone patch extraction."""
 
     # Bone coordinates detection
