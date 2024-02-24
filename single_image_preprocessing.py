@@ -51,7 +51,9 @@ def bone_extraction(image: np.ndarray, slope: float, intercept: float, threshold
         for j in range(len(image[i])):
             if image[i,j] * slope + intercept > threshold:
                 bone_coordinates.append((i,j))
-            
+    
+    # (TO-DO) Considerare punti del contorno
+
     # (TO-DO) Per ogni riga calcolare la media delle colonne
     # es. riga 30: (30,41), (30,42), (30,43), (30,44), (30,45) -> media delle colonne = 43
     # Per ogni colonna calcolare la media delle righe
