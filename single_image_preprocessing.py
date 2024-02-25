@@ -36,72 +36,38 @@ def hounsfield_hp_detection(image: np.ndarray, slope: float, intercept: float, t
 
     for i in range(len(image)):
         for j in range(len(image[i])):
-            if image[i,j] * slope + abs(intercept) > threshold:
+            if image[i,j] * slope + intercept > threshold:
                 return True
 
     return False
 
 
-def bone_extraction(image: np.ndarray, slope: float, intercept: float, threshold: int, output_dim: Tuple[int]) -> np.ndarray:
+def bone_extraction(image: np.ndarray, slope: float, intercept: float, metal_threshold: int, bone_threshold: int, output_dim: Tuple[int]) -> np.ndarray:
     """Bone patch extraction."""
 
+    # Image halving retaining only the part which contains the prothesis
+    image_left = image[0:image.shape[0], 0:int(image.shape[1]/2)]
+    image_right = image[0:image.shape[0], int(image.shape[1]/2)+1:image.shape[1]]
+    metal_half_detector = False # True = metal in the left part, False = metal in the right part
+    
+    for i in range(len(image_left)):
+        if metal_half_detector:
+            break
+        for j in range(len(image_left[i])):
+            if image[i,j] * slope + intercept > metal_threshold:
+                metal_half_detector = True
+                break
+    
+    image = image_left if metal_half_detector else image_right
+
+
     # Bone coordinates detection
-    bone_dict= {}
     bone_coordinates = []
     for i in range(len(image)):
         for j in range(len(image[i])):
-            if image[i,j] * slope + intercept > threshold:
-                if i not in bone_dict:
-                    bone_dict[i] = [(i,j)]
-                else:
-                    # Se i è già presente, aggiungi la tupla (i, j) alla lista corrispondente
-                    bone_dict[i].append((i,j))
+            if image[i,j] * slope + intercept > bone_threshold:
                 bone_coordinates.append((i,j))
 
-    print(bone_dict)
-
-    list_temp_mean_i = []
-    for k,v in bone_dict.items():
-        somma = 0
-        for tup in v:
-            somma+=tup[1]
-        temp_mean = somma/len(v)
-        list_temp_mean_i.append(temp_mean)
-
-    mean_for_row = sum(list_temp_mean_i)/len(list_temp_mean_i)
-    print(mean_for_row)
-
-
-
-
-    '''
-    # Sort the list of tuples by the first element (i) (row)
-    sorted_tuples = sorted(bone_coordinates, key=lambda x: x[0])
-
-    # Group tuples based on the same value of i (row)
-    grouped_tuples = {}
-    for key, group in groupby(sorted_tuples, key=lambda x: x[0]):
-        grouped_tuples[key] = list(group) #ogni tuple può avre numeri di elemti variabile in base a quante pixel osso sono state detected in quella riga
-    
-    list_temp_mean = []
-    for k,v in grouped_tuples.items():
-        s=0
-        for tup in v: #per tuple in v (che rappresenta il vettore di tutte le tuple ordinate per stessa riga)
-            s+=tup[1]
-        temp_mean = s/len(v)
-        list_temp_mean.append(temp_mean)
-    mean_for_row=sum(list_temp_mean)/len(list_temp_mean)
-    print(mean_for_row)
-    '''
-            
-    
-    # (TO-DO) Considerare punti del contorno
-
-    # (TO-DO) Per ogni riga calcolare la media delle colonne
-    # es. riga 30: (30,41), (30,42), (30,43), (30,44), (30,45) -> media delle colonne = 43
-    # Per ogni colonna calcolare la media delle righe
-    # es. colonna 50: (31,50), (32,50), (33,50), (34,50), (35,50) -> media delle righe = 33
-                
 
     # Centroid computation
     centroid_i, centroid_j = 0, 0
@@ -113,24 +79,50 @@ def bone_extraction(image: np.ndarray, slope: float, intercept: float, threshold
     centroid_j /= len(bone_coordinates)
     centroid_i, centroid_j = int(centroid_i), int(centroid_j)
 
-    print(centroid_i)
-    print(centroid_j)
+    print(f"Prothesis centroid x: {centroid_i}")
+    print(f"Prothesis centroid y: {centroid_j}")
     
+
     # Bone patch extraction
     assert output_dim[0] == output_dim[1] # Make sure patch is squared
-    if output_dim[0] % 2 == 1:
-        bone_patch = image[ centroid_i-int(output_dim[0]/2):centroid_i+int(output_dim[0]/2)+1, centroid_j-int(output_dim[1]/2):centroid_j+int(output_dim[1]/2)+1 ]
-    else:
-        bone_patch = image[ centroid_i-int(output_dim[0]/2):centroid_i+int(output_dim[0]/2), centroid_j-int(output_dim[1]/2):centroid_j+int(output_dim[1]/2) ] 
+    assert output_dim[0] < image.shape[0] # Make sure patch is smaller than image
+    assert output_dim[0] < image.shape[1] # Make sure patch is smaller than image
 
+    addon = 1 if output_dim[0] % 2 == 1 else 0
+
+    # Exception handling: patch is outside the image
+    if centroid_i-int(output_dim[0]/2) < 0:
+        if centroid_j-int(output_dim[1]/2) < 0: # Upper left corner
+            bone_patch = image[ 0:output_dim[0], 0:output_dim[1] ]
+        elif centroid_j+int(output_dim[1]/2)+1 > image.shape[1]: # Upper right coner
+            bone_patch = image[ 0:output_dim[0], image.shape[0]-output_dim[0]:image.shape[0] ]
+        else: # Upper side without corners
+            bone_patch = image[ 0:output_dim[0], centroid_j-int(output_dim[1]/2):centroid_j+int(output_dim[1]/2)+addon ]
+    elif centroid_i+int(output_dim[0]/2)+addon > image.shape[0]:
+        if centroid_j-int(output_dim[1]/2) < 0: # Lower left corner
+            bone_patch = image[ image.shape[0]-output_dim[0]:image.shape[0], 0:output_dim[1] ]
+        elif centroid_j+int(output_dim[1]/2)+1 > image.shape[1]: # Lower right corner
+            bone_patch = image[ image.shape[0]-output_dim[0]:image.shape[0], image.shape[1]-output_dim[1]:image.shape[1] ]
+        else: # Lower side without corners
+            bone_patch = image[ image.shape[0]-output_dim[0]:image.shape[0], centroid_j-int(output_dim[1]/2):centroid_j+int(output_dim[1]/2)+addon ]
+    else:
+        if centroid_j-int(output_dim[1]/2) < 0: # Left side without corners
+
+            bone_patch = image[ centroid_i-int(output_dim[0]/2):centroid_i+int(output_dim[0]/2)+addon, 0:output_dim[1] ]
+        elif centroid_j+int(output_dim[1]/2)+1 > image.shape[1]: # Right side without corners
+            bone_patch = image[ centroid_i-int(output_dim[0]/2):centroid_i+int(output_dim[0]/2)+addon, image.shape[1]-output_dim[1]:image.shape[1] ]
+        else: # Patch all inside the image
+            bone_patch = image[ centroid_i-int(output_dim[0]/2):centroid_i+int(output_dim[0]/2)+addon, centroid_j-int(output_dim[1]/2):centroid_j+int(output_dim[1]/2)+addon ]
+
+    
     return bone_patch
 
 
 def image_equalization(image: np.ndarray) -> np.ndarray:
     """Image equalization."""
 
-    rescaled_image = (np.maximum(image,0)/image.max())*255 # float pixels
-    final_image = np.uint8(rescaled_image) # integers pixels
+    rescaled_image = (np.maximum(image,0)/image.max())*255 # Rescale to 8 bit values
+    final_image = np.uint8(rescaled_image) # Convert pixel value to integer
 
     return final_image
     
@@ -175,7 +167,8 @@ def main():
                 image_bone = bone_extraction(image_matrix, 
                                              float(dicom_data.RescaleSlope), 
                                              float(dicom_data.RescaleIntercept), 
-                                             threshold=1000, 
+                                             metal_threshold=3000,
+                                             bone_threshold=1000, 
                                              output_dim=(188,188))
                 
                 image_bone_equalized = image_equalization(image_bone)
