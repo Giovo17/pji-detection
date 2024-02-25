@@ -105,6 +105,7 @@ def resize_patients(import_path: str, export_path: str, desired_size: Tuple[int]
                 image = Image.open(file_path)
             except UnidentifiedImageError as e:
                 print(f"cannot identify image file {file_path}")
+                print(e)
                 continue
 
             resized_image = image.resize(desired_size)
@@ -121,9 +122,9 @@ def main():
     
     print("Init preprocessing")
 
-    #preprocess_patients(dicom_data_path, png_export_data_path)
+    preprocess_patients(dicom_data_path, png_export_data_path)
 
-    #resize_patients(png_export_data_path, png_resized_data_path, (227,227))
+    resize_patients(png_export_data_path, png_resized_data_path, (227,227))
     
 
 if __name__ == "__main__":

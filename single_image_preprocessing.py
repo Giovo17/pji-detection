@@ -123,10 +123,8 @@ def image_equalization(image: np.ndarray) -> np.ndarray:
     rescaled_pixel_value_image = (np.maximum(image,0)/image.max())*255 # Rescale to 8 bit values
     int_pixel_image = np.uint8(rescaled_pixel_value_image) # Convert pixel value to integer
 
-    # Convert the image to grayscale if it's not already
-    if image.mode != 'L':
-        image = image.convert('L')
-
+    if int_pixel_image.mode != 'L': # Convert the image to grayscale if it's not already
+        int_pixel_image = int_pixel_image.convert('L')
     equalized_image = ImageOps.equalize(int_pixel_image)  # Apply histogram equalization
 
     return equalized_image 
@@ -136,9 +134,6 @@ def image_equalization(image: np.ndarray) -> np.ndarray:
 def convert_matrix2png(image, output_path: str, desired_size: Tuple[int] = None):
     """Convert a numpy matrix to png and save to disk."""
     
-    if desired_size != None: #TO-DO
-        pass
-
     final_image = Image.fromarray(image)
     final_image.save(output_path)
 
