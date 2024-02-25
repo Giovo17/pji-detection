@@ -110,16 +110,16 @@ def resize_patients(import_path: str, export_path: str, desired_size: Tuple[int]
         for name in files:            
             file_path = os.path.join(root, name)
             try:
-                image = Image.open(file_path).convert("L")
+                image = Image.open(file_path)
             except UnidentifiedImageError as e:
                 print(f"cannot identify image file {file_path}")
                 print(e)
                 continue
 
             resized_image = image.resize(desired_size)
-            
-            resized_image.convert("RGB") # Convert to RGB cause almost every CNN take as input 3-channels images
 
+            resized_image = resized_image.convert("RGB") # Convert to RGB cause almost every CNN take as input 3-channels images
+            
             # Output filepath
             splitted_file_path = file_path.split("/")
             img_id = splitted_file_path[-1].split("Patient")[-1][2:]
