@@ -117,29 +117,19 @@ def bone_extraction(image: np.ndarray, slope: float, intercept: float, metal_thr
     return bone_patch
 
 
-def image_equalization(image: np.ndarray) -> np.ndarray:
+def image_equalization(image: np.ndarray) -> Image:
     """Image equalization."""
 
     rescaled_pixel_value_image = (np.maximum(image,0)/image.max())*255 # Rescale to 8 bit values
     int_pixel_image = np.uint8(rescaled_pixel_value_image) # Convert pixel value to integer
 
-    if int_pixel_image.mode != 'L': # Convert the image to grayscale if it's not already
-        int_pixel_image = int_pixel_image.convert('L')
-    equalized_image = ImageOps.equalize(int_pixel_image)  # Apply histogram equalization
+    pil_image = Image.fromarray(int_pixel_image)
+    if pil_image.mode != 'L': # Convert the image to grayscale if it's not already
+        pil_image = pil_image.convert('L')
+    equalized_image = ImageOps.equalize(pil_image)  # Apply histogram equalization
 
     return equalized_image 
     
-
-
-def convert_matrix2png(image, output_path: str, desired_size: Tuple[int] = None):
-    """Convert a numpy matrix to png and save to disk."""
-    
-    final_image = Image.fromarray(image)
-    final_image.save(output_path)
-
-    return final_image
-
-
 
 def main():
     print("Single image preprocessing")
@@ -157,7 +147,7 @@ def main():
         if (height, width) == (512,512): # Filter only axial tomographies
 
             image_matrix = convert_dcm2matrix(file_path)
-            convert_matrix2png(image_equalization(image_matrix), output_file_path1)
+            Image.fromarray(np.uint8( (np.maximum(image_matrix,0)/image_matrix.max())*255 )).save(output_file_path1)
 
             if hounsfield_hp_detection(image_matrix, 
                                        float(dicom_data.RescaleSlope), 
@@ -173,7 +163,7 @@ def main():
                 
                 image_bone_equalized = image_equalization(image_bone)
                 
-                convert_matrix2png(image_bone_equalized, output_file_path2)
+                image_bone_equalized.save(output_file_path2)
 
     
 

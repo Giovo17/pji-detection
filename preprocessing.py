@@ -6,7 +6,7 @@ from PIL import UnidentifiedImageError
 from typing import Tuple
 
 from utils.remove_folders import remove_empty_folders
-from single_image_preprocessing import convert_dcm2matrix, hounsfield_hp_detection, bone_extraction, image_equalization, convert_matrix2png
+from single_image_preprocessing import convert_dcm2matrix, hounsfield_hp_detection, bone_extraction, image_equalization
 
 
 # Paths
@@ -58,12 +58,20 @@ def preprocess_patients(import_path: str, export_path: str):
                         #image_converted.save(output_file_path) # Deprecated
                         image_matrix = convert_dcm2matrix(file_path)
 
-                        if hounsfield_hp_detection(image_matrix, float(dicom_data.RescaleSlope), float(dicom_data.RescaleIntercept), threshold=3000):
-                            image_bone = bone_extraction(image_matrix, float(dicom_data.RescaleSlope), float(dicom_data.RescaleIntercept), threshold=1000)
+                        if hounsfield_hp_detection(image_matrix, 
+                                                   float(dicom_data.RescaleSlope), 
+                                                   float(dicom_data.RescaleIntercept), 
+                                                   threshold=3000):
+                            image_bone = bone_extraction(image_matrix, 
+                                                         float(dicom_data.RescaleSlope), 
+                                                         float(dicom_data.RescaleIntercept), 
+                                                         metal_threshold=3000,
+                                                         bone_threshold=1000, 
+                                                         output_dim=(188,188))
                             
                             image_bone_equalized = image_equalization(image_bone)
                             
-                            convert_matrix2png(image_bone_equalized, output_file_path)
+                            image_bone_equalized.save(output_file_path)
 
 
                 else:
