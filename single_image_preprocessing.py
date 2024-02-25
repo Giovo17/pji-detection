@@ -123,6 +123,10 @@ def image_equalization(image: np.ndarray) -> np.ndarray:
     rescaled_pixel_value_image = (np.maximum(image,0)/image.max())*255 # Rescale to 8 bit values
     int_pixel_image = np.uint8(rescaled_pixel_value_image) # Convert pixel value to integer
 
+    # Convert the image to grayscale if it's not already
+    if image.mode != 'L':
+        image = image.convert('L')
+
     equalized_image = ImageOps.equalize(int_pixel_image)  # Apply histogram equalization
 
     return equalized_image 
