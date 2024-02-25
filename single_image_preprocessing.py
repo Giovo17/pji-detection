@@ -1,8 +1,7 @@
 import os
 import numpy as np
 import pydicom
-from PIL import Image
-from PIL import UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 from typing import Tuple
 from itertools import groupby
 
@@ -121,10 +120,12 @@ def bone_extraction(image: np.ndarray, slope: float, intercept: float, metal_thr
 def image_equalization(image: np.ndarray) -> np.ndarray:
     """Image equalization."""
 
-    rescaled_image = (np.maximum(image,0)/image.max())*255 # Rescale to 8 bit values
-    final_image = np.uint8(rescaled_image) # Convert pixel value to integer
+    rescaled_pixel_value_image = (np.maximum(image,0)/image.max())*255 # Rescale to 8 bit values
+    int_pixel_image = np.uint8(rescaled_pixel_value_image) # Convert pixel value to integer
 
-    return final_image
+    equalized_image = ImageOps.equalize(int_pixel_image)  # Apply histogram equalization
+
+    return equalized_image 
     
 
 
