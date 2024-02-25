@@ -146,9 +146,10 @@ def main():
     
     print("Init preprocessing")
 
-    #preprocess_patients(dicom_data_path, png_export_data_path)
+    preprocess_patients(dicom_data_path, png_export_data_path)
 
     resize_patients(png_export_data_path, png_resized_data_path, (227,227))
+    resize_patients(png_export_data_path, png_resized_data_path, (224,224))
     
 
 if __name__ == "__main__":
