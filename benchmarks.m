@@ -20,9 +20,55 @@ imageAugmenter = imageDataAugmenter( ...
     'RandYTranslation',[-30 30]);
 
 
-%resnet50_finetuning(imdsTrain,imdsValidation, imageAugmenter)
 %squeezenet_finetuning(imdsTrain,imdsValidation, imageAugmenter)
-googlenet_finetuning(imdsTrain,imdsValidation, imageAugmenter)
+%googlenet_finetuning(imdsTrain,imdsValidation, imageAugmenter)
+resnet18_finetuning(imdsTrain,imdsValidation, imageAugmenter)
+%resnet50_finetuning(imdsTrain,imdsValidation, imageAugmenter)
+
+
+function [net, info] = resnet18_finetuning(train_data, val_data, imageAugmenter)
+
+
+    numClasses = numel(categories(train_data.Labels));
+
+
+    net = resnet18;
+    %deepNetworkDesigner(net)
+    inputSize = net.Layers(1).InputSize
+    lgraph = layerGraph(net); 
+
+    % Data Augmentation
+    augimdsTrain = augmentedImageDatastore(inputSize(1:2),train_data,'DataAugmentation',imageAugmenter);
+    augimdsValidation = augmentedImageDatastore(inputSize(1:2),val_data);
+
+    % Specify new layers for classification based on number of unique classes
+    newfc = fullyConnectedLayer(numClasses, ...
+                                'Name','new_fc', ...
+                                'WeightLearnRateFactor',10, ...
+                                'BiasLearnRateFactor',10);
+    lgraph = replaceLayer(lgraph,'fc1000',newfc);
+
+    newClassLayer = classificationLayer('Name','new_classoutput');
+    lgraph = replaceLayer(lgraph,'ClassificationLayer_predictions',newClassLayer);
+    
+    % Training hyperparameters
+     opts = trainingOptions('adam', ...
+                           'MiniBatchSize', 32, ...
+                           'MaxEpochs', 5, ...
+                           'InitialLearnRate', 1e-4, ...
+                           'L2Regularization', 0.0005, ...
+                           'Shuffle','every-epoch', ...
+                           'ValidationData', augimdsValidation, ...
+                           'ValidationFrequency', 50, ...
+                           'Plots', 'training-progress', ...
+                           'Verbose', false);
+
+    % Model finetuning
+    [net, info] = trainNetwork(train_data, lgraph, opts);
+
+end
+
+
 
 
 function [net, info] = resnet50_finetuning(train_data, val_data, imageAugmenter)
@@ -93,7 +139,7 @@ function [net, info] = squeezenet_finetuning(train_data, val_data, imageAugmente
     % Training hyperparameters
     opts = trainingOptions('adam', ...
                            'MiniBatchSize', 32, ...
-                           'MaxEpochs', 1, ...
+                           'MaxEpochs', 5, ...
                            'InitialLearnRate', 1e-4, ...
                            'L2Regularization', 0.0005, ...
                            'Shuffle','every-epoch', ...
