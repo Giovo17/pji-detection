@@ -3,64 +3,63 @@ clear;
 close all;
 
 
-numClasses = 2;
+% Resnet50 finetuning
 
-net = resnet50();
-lgraph = layerGraph(net);
-
-
-layersToRemove = {
-    'fc1000'
-    'fc1000_softmax'
-    'ClassificationLayer_fc1000'
-    };
-lgraph = removeLayers(lgraph, layersToRemove);
-
-
-newLayers = [
-    fullyConnectedLayer(numClassesPlusBackground, 'Name', 'rcnnFC')
-    softmaxLayer('Name', 'rcnnSoftmax')
-    classificationLayer('Name', 'rcnnClassification')
-    ];
-lgraph = addLayers(lgraph, newLayers);
-
-
-lgraph = connectLayers(lgraph, 'avg_pool', 'rcnnFC');
-
-
-load gTruth;
-layers = resnet50('Weights', 'none')
-
-
-dataFolder = '/Users/giov17/Desktop/png_resized';
+dataFolder = '~/Desktop/rescale_224x224/';
 exts = {'.png'}
-
 imds = imageDatastore(dataFolder, 'FileExtensions', exts, 'IncludeSubfolders', true, 'LabelSource','foldernames');
-
-%imageAugmenter = imageDataAugmenter('RandRotation',[1,2]);
-%augimds = augmentedImageDatastore([28 28],imds, 'DataAugmentation',imageAugmenter);
-
-%augimds = shuffle(augimds);
+[imdsTrain, imdsValidation] = splitEachLabel(imds,0.7,'randomized');
 
 
-
-summary(trainingData)
-options = trainingOptions('sgdm', ...
-  'MiniBatchSize', 128, ...
-  'InitialLearnRate', 1e-6, ...
-  'MaxEpochs', 5);
-[detector,info] = trainRCNNObjectDetector(trainingData, layers, options, 'NegativeOverlapRange', [0 0.3]);
+numClasses = numel(categories(imdsTrain.Labels));
 
 
+net = resnet50;
+%deepNetworkDesigner(net)
+inputSize = net.Layers(1).InputSize
+lgraph = layerGraph(net); 
 
-% https://it.mathworks.com/help/deeplearning/ug/transfer-learning-with-deep-network-designer.html
+
+% Specify new layers for classification based on number of unique classes
+newfc = fullyConnectedLayer(numClasses, ...
+    'Name','new_fc', ...
+    'WeightLearnRateFactor',10, ...
+    'BiasLearnRateFactor',10);
+lgraph = replaceLayer(lgraph,'fc1000',newfc);
+
+newClassLayer = classificationLayer('Name','new_classoutput');
+lgraph = replaceLayer(lgraph,'ClassificationLayer_fc1000',newClassLayer);
+
+
+% Data augmentation
+pixelRange = [-30 30];
+imageAugmenter = imageDataAugmenter( ...
+    'RandXReflection',true, ...
+    'RandXTranslation',pixelRange, ...
+    'RandYTranslation',pixelRange);
+augimdsTrain = augmentedImageDatastore(inputSize(1:2),imdsTrain, ...
+    'DataAugmentation',imageAugmenter);
+
+
+augimdsValidation = augmentedImageDatastore(inputSize(1:2),imdsValidation);
 
 
 
+% Training hyperparameters
+opts = trainingOptions('adam', ...
+                       'MiniBatchSize', 32, ...
+                       'MaxEpochs', 5, ...
+                       'InitialLearnRate',1e-4, ...
+                       'Shuffle','every-epoch', ...
+                       'ValidationData', augimdsValidation, ...
+                       'ValidationFrequency',3, ...
+                       'Plots', 'training-progress', ...
+                       'Verbose', false);
 
-% PyTorch models
 
-%model_yolov5s = "./models/yolov5s.pt"
+% Model finetuning
+[net, info] = trainNetwork(augimdsTrain, lgraph, opts);
 
-%net = importNetworkFromPyTorch(model_yolov5s)
+
+
 
