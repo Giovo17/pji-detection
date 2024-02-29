@@ -20,6 +20,7 @@ def extract_clf_metrics(y_true: List[str], y_pred: List[str], output_path: str, 
     cf_plot.set_xlabel("Predicted")
     cf_plot.set_ylabel("True")
     plt.savefig(os.path.join(output_path, model_name + "_cm.png"))
+    plt.clf() # Clear plt output
 
     # Accuracy, precision, recall, F1-score
     y_true = list(map(label2id.get, map(str, y_true)))
@@ -58,6 +59,8 @@ def main():
         
 
         metrics_dict = extract_clf_metrics(y_true, y_pred, results_path, model)
+
+        del y_true, y_true_df, y_pred, y_pred_df
 
         results = pd.concat([results, pd.DataFrame(metrics_dict, index=[0])])
 
