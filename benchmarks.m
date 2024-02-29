@@ -5,11 +5,11 @@ close all;
 
 % Data import
 %dataFolder = '~/Desktop/rescale_224x224/'; %resnet18, resnet50,  googlenet
-%dataFolder = '~/Desktop/rescale_227x227/'; % squeezenet
-dataFolder = '~/Desktop/rescale_256x256/'; % darknet19
+dataFolder = '~/Desktop/rescale_227x227/'; % squeezenet
+%dataFolder = '~/Desktop/rescale_256x256/'; % darknet19
 exts = {'.png'}
 imds = imageDatastore(dataFolder, 'FileExtensions', exts, 'IncludeSubfolders', true, 'LabelSource','foldernames');
-[imdsTrain, imdsValidation] = splitEachLabel(imds,0.7,'randomized');
+[imdsTrain, imdsValidation, imdsTest] = splitEachLabel(imds,0.7,0.15,'randomized');
 
 
 % Data augmentation
@@ -21,16 +21,16 @@ imageAugmenter = imageDataAugmenter( ...
     'RandYTranslation',[-30 30]);
 
 
-%squeezenet_finetuning(imdsTrain, imdsValidation, imageAugmenter)
-%googlenet_finetuning(imdsTrain, imdsValidation, imageAugmenter)
-%resnet18_finetuning(imdsTrain, imdsValidation, imageAugmenter)
-%resnet50_finetuning(imdsTrain, imdsValidation, imageAugmenter)
-darknet19_finetuning(imdsTrain, imdsValidation, imageAugmenter)
+[info, YPred, scores] = squeezenet_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
+%[info, YPred, scores] = googlenet_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
+%[info, YPred, scores] = resnet18_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
+%[info, YPred, scores] = resnet50_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
+%[info, YPred, scores] = darknet19_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
 
 
 
 
-function [net, info] = squeezenet_finetuning(train_data, val_data, imageAugmenter)
+function [info, YPred, scores] = squeezenet_finetuning(train_data, val_data, test_data, imageAugmenter)
 
     numClasses = numel(categories(train_data.Labels));
 
@@ -55,24 +55,40 @@ function [net, info] = squeezenet_finetuning(train_data, val_data, imageAugmente
     % Training hyperparameters
     opts = trainingOptions('adam', ...
                            'MiniBatchSize', 32, ...
-                           'MaxEpochs', 5, ...
+                           'MaxEpochs', 2, ...
                            'InitialLearnRate', 1e-4, ...
-                           'L2Regularization', 0.0005, ...
+                           'L2Regularization', 5e-4, ...
                            'Shuffle','every-epoch', ...
                            'ValidationData', augimdsValidation, ...
-                           'ValidationFrequency', 50, ...
+                           'ValidationFrequency', 100, ...
                            'Plots', 'training-progress', ...
                            'Verbose', false);
 
 
     % Model finetuning
     [net, info] = trainNetwork(train_data, lgraph, opts);
+    exportONNXNetwork(net, "squeezenet.onnx") % Export network
+
+
+    % Model test and metrics extraction
+    [YPred,scores] = classify(net,test_data);
+    
+
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'squeezenet_training_progess.png');
+
+
+    % Export results
+    writematrix(YPred,'squeezenet_ypred.csv')
+    writematrix(scores,'squeezenet_scores.csv')
+    writematrix(test_data.Labels,'squeezenet_ytrue.csv')
 
 end
 
 
 
-function [net, info] = googlenet_finetuning(train_data, val_data, imageAugmenter)
+function [info, YPred, scores] = googlenet_finetuning(train_data, val_data, test_data, imageAugmenter)
 
     numClasses = numel(categories(train_data.Labels));
 
@@ -95,26 +111,37 @@ function [net, info] = googlenet_finetuning(train_data, val_data, imageAugmenter
     
 
     % Training hyperparameters
-     opts = trainingOptions('adam', ...
+    opts = trainingOptions('adam', ...
                            'MiniBatchSize', 32, ...
-                           'MaxEpochs', 1, ...
+                           'MaxEpochs', 2, ...
                            'InitialLearnRate', 1e-4, ...
-                           'L2Regularization', 0.0005, ...
+                           'L2Regularization', 5e-4, ...
                            'Shuffle','every-epoch', ...
                            'ValidationData', augimdsValidation, ...
-                           'ValidationFrequency', 50, ...
+                           'ValidationFrequency', 100, ...
                            'Plots', 'training-progress', ...
                            'Verbose', false);
 
 
     % Model finetuning
     [net, info] = trainNetwork(train_data, lgraph, opts);
+    exportONNXNetwork(net, "googlenet.onnx")
+
+
+    % Model test and metrics extraction
+    [YPred,scores] = classify(net,test_data);
+
+
+    % Export results
+    writematrix(YPred,'googlenet_ypred.csv')
+    writematrix(scores,'googlenet_scores.csv')
+    writematrix(test_data.Labels,'googlenet_ytrue.csv')
 
 end
 
 
 
-function [net, info] = resnet18_finetuning(train_data, val_data, imageAugmenter)
+function [info, YPred, scores] = resnet18_finetuning(train_data, val_data, test_data, imageAugmenter)
 
     numClasses = numel(categories(train_data.Labels));
 
@@ -137,26 +164,37 @@ function [net, info] = resnet18_finetuning(train_data, val_data, imageAugmenter)
     
 
     % Training hyperparameters
-     opts = trainingOptions('adam', ...
+    opts = trainingOptions('adam', ...
                            'MiniBatchSize', 32, ...
-                           'MaxEpochs', 5, ...
+                           'MaxEpochs', 1, ...
                            'InitialLearnRate', 1e-4, ...
-                           'L2Regularization', 0.0005, ...
+                           'L2Regularization', 5e-4, ...
                            'Shuffle','every-epoch', ...
                            'ValidationData', augimdsValidation, ...
-                           'ValidationFrequency', 50, ...
+                           'ValidationFrequency', 100, ...
                            'Plots', 'training-progress', ...
                            'Verbose', false);
 
 
     % Model finetuning
     [net, info] = trainNetwork(train_data, lgraph, opts);
+    exportONNXNetwork(net, "resnet18.onnx")
+
+
+    % Model test and metrics extraction
+    [YPred,scores] = classify(net,test_data);
+
+
+    % Export results
+    writematrix(YPred,'resnet18_ypred.csv')
+    writematrix(scores,'resnet18_scores.csv')
+    writematrix(test_data.Labels,'resnet18_ytrue.csv')
 
 end
 
 
 
-function [net, info] = resnet50_finetuning(train_data, val_data, imageAugmenter)
+function [info, YPred, scores] = resnet50_finetuning(train_data, val_data, test_data, imageAugmenter)
 
     numClasses = numel(categories(train_data.Labels));
 
@@ -183,22 +221,33 @@ function [net, info] = resnet50_finetuning(train_data, val_data, imageAugmenter)
                            'MiniBatchSize', 32, ...
                            'MaxEpochs', 1, ...
                            'InitialLearnRate', 1e-4, ...
-                           'L2Regularization', 0.0005, ...
+                           'L2Regularization', 5e-4, ...
                            'Shuffle','every-epoch', ...
                            'ValidationData', augimdsValidation, ...
-                           'ValidationFrequency', 50, ...
+                           'ValidationFrequency', 100, ...
                            'Plots', 'training-progress', ...
                            'Verbose', false);
 
 
     % Model finetuning
     [net, info] = trainNetwork(train_data, lgraph, opts);
+    exportONNXNetwork(net, "resnet50.onnx")
+
+
+    % Model test and metrics extraction
+    [YPred,scores] = classify(net,test_data);
+
+
+    % Export results
+    writematrix(YPred,'resnet50_ypred.csv')
+    writematrix(scores,'resnet50_scores.csv')
+    writematrix(test_data.Labels,'resnet50_ytrue.csv')
 
 end
 
 
 
-function [net, info] = darknet19_finetuning(train_data, val_data, imageAugmenter)
+function [info, YPred, scores] = darknet19_finetuning(train_data, val_data, test_data, imageAugmenter)
 
     numClasses = numel(categories(train_data.Labels));
 
@@ -221,20 +270,31 @@ function [net, info] = darknet19_finetuning(train_data, val_data, imageAugmenter
     
 
     % Training hyperparameters
-     opts = trainingOptions('adam', ...
+    opts = trainingOptions('adam', ...
                            'MiniBatchSize', 32, ...
                            'MaxEpochs', 1, ...
                            'InitialLearnRate', 1e-4, ...
-                           'L2Regularization', 0.0005, ...
+                           'L2Regularization', 5e-4, ...
                            'Shuffle','every-epoch', ...
                            'ValidationData', augimdsValidation, ...
-                           'ValidationFrequency', 50, ...
+                           'ValidationFrequency', 100, ...
                            'Plots', 'training-progress', ...
                            'Verbose', false);
 
 
     % Model finetuning
     [net, info] = trainNetwork(train_data, lgraph, opts);
+    exportONNXNetwork(net, "darknet19.onnx")
+
+
+    % Model test and metrics extraction
+    [YPred,scores] = classify(net,test_data);
+
+
+    % Export results
+    writematrix(YPred,'darknet19_ypred.csv')
+    writematrix(scores,'darknet19_scores.csv')
+    writematrix(test_data.Labels,'darknet19_ytrue.csv')
 
 end
 
