@@ -72,19 +72,19 @@ function [info, YPred, scores] = squeezenet_finetuning(train_data, val_data, tes
 
     % Model test and metrics extraction
     [YPred,scores] = classify(net,test_data);
-    
-
-    % Export training progress image
-    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
-    savefig(currentfig,'squeezenet_training_progess.png');
-    img = screencapture(0, 'Position', currentfig(1,1).Position);
-    imwrite(img,"squeezenet_training_progess_screen.png");
 
 
     % Export results
     writematrix(YPred,'squeezenet_ypred.csv')
     writematrix(scores,'squeezenet_scores.csv')
     writematrix(test_data.Labels,'squeezenet_ytrue.csv')
+    
+
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'squeezenet_training_progess.fig');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"squeezenet_training_progess_screen.png");
 
 end
 
@@ -134,17 +134,17 @@ function [info, YPred, scores] = googlenet_finetuning(train_data, val_data, test
     [YPred,scores] = classify(net,test_data);
 
 
-    % Export training progress image
-    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
-    savefig(currentfig,'googlenet_training_progess.png');
-    img = screencapture(0, 'Position', currentfig(1,1).Position);
-    imwrite(img,"googlenet_training_progess_screen.png");
-
-
     % Export results
     writematrix(YPred,'googlenet_ypred.csv')
     writematrix(scores,'googlenet_scores.csv')
     writematrix(test_data.Labels,'googlenet_ytrue.csv')
+
+
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'googlenet_training_progess.fig');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"googlenet_training_progess_screen.png");
 
 end
 
@@ -194,17 +194,17 @@ function [info, YPred, scores] = resnet18_finetuning(train_data, val_data, test_
     [YPred,scores] = classify(net,test_data);
 
 
-    % Export training progress image
-    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
-    savefig(currentfig,'resnet18_training_progess.png');
-    img = screencapture(0, 'Position', currentfig(1,1).Position);
-    imwrite(img,"resnet18_training_progess_screen.png");
-
-
     % Export results
     writematrix(YPred,'resnet18_ypred.csv')
     writematrix(scores,'resnet18_scores.csv')
     writematrix(test_data.Labels,'resnet18_ytrue.csv')
+
+
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'resnet18_training_progess.fig');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"resnet18_training_progess_screen.png");
 
 end
 
@@ -254,17 +254,17 @@ function [info, YPred, scores] = resnet50_finetuning(train_data, val_data, test_
     [YPred,scores] = classify(net,test_data);
 
 
-    % Export training progress image
-    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
-    savefig(currentfig,'resnet50_training_progess.png');
-    img = screencapture(0, 'Position', currentfig(1,1).Position);
-    imwrite(img,"resnet50_training_progess_screen.png");
-
-
     % Export results
     writematrix(YPred,'resnet50_ypred.csv')
     writematrix(scores,'resnet50_scores.csv')
     writematrix(test_data.Labels,'resnet50_ytrue.csv')
+
+
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'resnet50_training_progess.fig');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"resnet50_training_progess_screen.png");
 
 end
 
@@ -314,17 +314,17 @@ function [info, YPred, scores] = darknet19_finetuning(train_data, val_data, test
     [YPred,scores] = classify(net,test_data);
 
 
-    % Export training progress image
-    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
-    savefig(currentfig,'darknet19_training_progess.png');
-    img = screencapture(0, 'Position', currentfig(1,1).Position);
-    imwrite(img,"darknet19_training_progess_screen.png");
-
-
     % Export results
     writematrix(YPred,'darknet19_ypred.csv')
     writematrix(scores,'darknet19_scores.csv')
     writematrix(test_data.Labels,'darknet19_ytrue.csv')
+    
+
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'darknet19_training_progess.fig');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"darknet19_training_progess_screen.png");
 
 end
 
