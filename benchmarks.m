@@ -4,8 +4,8 @@ close all;
 
 
 % Data import
-%dataFolder = '~/Desktop/rescale_224x224/'; %resnet18, resnet50,  googlenet
-dataFolder = '~/Desktop/rescale_227x227/'; % squeezenet
+dataFolder = '~/Desktop/rescale_224x224/'; % googlenet, resnet18, resnet50
+%dataFolder = '~/Desktop/rescale_227x227/'; % squeezenet
 %dataFolder = '~/Desktop/rescale_256x256/'; % darknet19
 exts = {'.png'}
 imds = imageDatastore(dataFolder, 'FileExtensions', exts, 'IncludeSubfolders', true, 'LabelSource','foldernames');
@@ -21,9 +21,9 @@ imageAugmenter = imageDataAugmenter( ...
     'RandYTranslation',[-30 30]);
 
 
-[info, YPred, scores] = squeezenet_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
+%[info, YPred, scores] = squeezenet_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
 %[info, YPred, scores] = googlenet_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
-%[info, YPred, scores] = resnet18_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
+[info, YPred, scores] = resnet18_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
 %[info, YPred, scores] = resnet50_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
 %[info, YPred, scores] = darknet19_finetuning(imdsTrain, imdsValidation, imdsTest, imageAugmenter)
 
