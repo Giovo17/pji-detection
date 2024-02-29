@@ -77,6 +77,8 @@ function [info, YPred, scores] = squeezenet_finetuning(train_data, val_data, tes
     % Export training progress image
     currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
     savefig(currentfig,'squeezenet_training_progess.png');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"squeezenet_training_progess_screen.png");
 
 
     % Export results
@@ -132,6 +134,13 @@ function [info, YPred, scores] = googlenet_finetuning(train_data, val_data, test
     [YPred,scores] = classify(net,test_data);
 
 
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'googlenet_training_progess.png');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"googlenet_training_progess_screen.png");
+
+
     % Export results
     writematrix(YPred,'googlenet_ypred.csv')
     writematrix(scores,'googlenet_scores.csv')
@@ -183,6 +192,13 @@ function [info, YPred, scores] = resnet18_finetuning(train_data, val_data, test_
 
     % Model test and metrics extraction
     [YPred,scores] = classify(net,test_data);
+
+
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'resnet18_training_progess.png');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"resnet18_training_progess_screen.png");
 
 
     % Export results
@@ -238,6 +254,13 @@ function [info, YPred, scores] = resnet50_finetuning(train_data, val_data, test_
     [YPred,scores] = classify(net,test_data);
 
 
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'resnet50_training_progess.png');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"resnet50_training_progess_screen.png");
+
+
     % Export results
     writematrix(YPred,'resnet50_ypred.csv')
     writematrix(scores,'resnet50_scores.csv')
@@ -289,6 +312,13 @@ function [info, YPred, scores] = darknet19_finetuning(train_data, val_data, test
 
     % Model test and metrics extraction
     [YPred,scores] = classify(net,test_data);
+
+
+    % Export training progress image
+    currentfig = findall(groot, 'Tag', 'NNET_CNN_TRAININGPLOT_UIFIGURE');
+    savefig(currentfig,'darknet19_training_progess.png');
+    img = screencapture(0, 'Position', currentfig(1,1).Position);
+    imwrite(img,"darknet19_training_progess_screen.png");
 
 
     % Export results
